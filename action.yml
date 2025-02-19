@@ -1,31 +1,30 @@
 name: 'Go Checks'
 description: 'Runs Go linting and unit tests'
 inputs:
-  go-version:  # id of input
-    description: 'Version of Go you want use'
+  go-version:
+    description: 'Version of Go you want to use'
     required: false
     default: '1.23'
 runs:
   using: "composite"
   steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '$INPUT_GO_VERSION'
-          env:
-            INPUT_GO_VERSION: ${{ inputs.go-version }}
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ inputs.go-version }}
 
-      - name: Test
-        run: go test -v ./...
-        shell: pwsh
+    - name: Install golangci-lint
+      run: |
+        go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+        echo "$HOME/go/bin" >> $GITHUB_PATH
+      shell: bash  # 
 
-      - name: Install golangci-lint
-        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-        shell: pwsh
+    - name: Run golangci-lint
+      run: golangci-lint run
+      shell: bash
 
-      - name: Run golangci-lint
-        run: golangci-lint run
-        shell: pwsh
-
+    - name: Run Go Tests
+      run: go test -v ./...
+      shell: bash
